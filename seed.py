@@ -1,58 +1,34 @@
-import logging
 import random
 from faker import Faker
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from models import Group, Teacher, Subject, Student, Grade
+from sqlalchemy.exc import SQLAlchemyError
+from faker import Faker
+from connect import session
+from models import Student, Grade, Subject, Group, Teacher
 
-fake = Faker()
+fake = Faker("en_CA")
 
-print(fake.name())
+for _ in range(5):
+    teacher = Teacher(fullname=fake.name())
+    session.add(teacher)
 
-# Підключення до бази даних
-engine = create_engine('postgresql://postgres:blah_blah_blah@localhost/witchcraft', echo=True)
-Session = sessionmaker(bind=engine)
-session = Session()
+for _ in range(3):
+    group = Group(name=fake.word())
+    session.add(group)
 
-try:
-    # Додавання фейкових даних до вже створених таблиць
-    # Додавання груп
-    for _ in range(3):
-        group = Group(name=fake.word())
-        session.add(group)
+for _ in range(30):
+    student = Student(fullname=fake.name(), group_id=random.choice(session.query(Group).all()).id)
+    session.add(student)
 
-    # Додавання викладачів
-    for _ in range(3):
-        teacher = Teacher(fullname=fake.name())
-        session.add(teacher)
+for _ in range(8):
+    subjects = Subject(name=fake.word(), teacher_id=random.choice(session.query(Teacher).all()).id)
+    session.add(subjects)
 
-    session.commit()
+for _ in range(30):
+    grades = Grade(
+        grade=random.randint(1, 12),
+        grade_date=fake.date_between(start_date='-5y'),
+        student_id=random.choice(session.query(Student).all()).id,
+        subjects_id=random.choice(session.query(Subject).all()).id)
+    session.add(grades)
 
-    # Додавання предметів із вказівкою викладача
-    teachers = session.query(Teacher).all()
-    for teacher in teachers:
-        for _ in range(2):
-            subject = Subject(name=fake.word(), teacher_id=teacher.id)
-            session.add(subject)
-
-    session.commit()
-
-    # Додавання студентів і оцінок
-    groups = session.query(Group).all()
-    for group in groups:
-        for _ in range(10):
-            student = Student(fullname=fake.name(), group_id=group.id)
-            session.add(student)
-            session.commit()
-            for subject in group.students:
-                for _ in range(3):
-                    grade = Grade(student_id=student.id, subject_id=subject.id, grade=random.randint(0, 100), grade_date=fake.date_this_decade())
-                    session.add(grade)
-
-    session.commit()
-
-except Exception as e:
-    logging.error(e)
-    session.rollback()
-finally:
-    session.close()
+session.commit()
