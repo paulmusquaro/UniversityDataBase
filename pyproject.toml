@@ -1,17 +1,17 @@
 [tool.poetry]
-name = "py-web-7"
+name = "universitydatabase"
 version = "0.1.0"
-description = "..."
-authors = ["Your Name <you@example.com>"]
+description = ""
+authors = ["paulmusquaro <136118097+paulmusquaro@users.noreply.github.com>"]
+license = "MIT"
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
 sqlalchemy = "^2.0.29"
-alembic = "^1.13.1"
-sqlalchemy-utils = "^0.41.2"
-psycopg2 = "^2.9.9"
 faker = "^24.4.0"
+alembic = "^1.13.1"
+psycopg2 = "^2.9.9"
 
 
 [build-system]

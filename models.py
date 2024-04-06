@@ -1,44 +1,43 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import ForeignKey, String, Integer
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from datetime import datetime
 
 
-Base = declarative_base()
 
+class Base(DeclarativeBase):
+    pass
 
 class Teacher(Base):
     __tablename__ = "teachers"
-    id = Column(Integer, primary_key=True)
-    fullname = Column(String(150), nullable=False)
-
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
 
 class Group(Base):
     __tablename__ = "groups"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
-
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
 
 class Student(Base):
     __tablename__ = "students"
-    id = Column(Integer, primary_key=True)
-    fullname = Column(String(150), nullable=False)
-    group_id = Column("group_id", ForeignKey("groups.id", ondelete="CASCADE"))
-    group = relationship("Group", backref="students")
-
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(150), nullable=False)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
+    group: Mapped["Group"] = relationship(backref="students")
 
 class Subject(Base):
     __tablename__ = "subjects"
-    id = Column(Integer, primary_key=True)
-    name = Column(String(175), nullable=False)
-    teacher_id = Column("teacher_id", ForeignKey("teachers.id", ondelete="CASCADE"))
-    teacher = relationship("Teacher", backref="subjects")
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(String(175), nullable=False)
+    teacher_id: Mapped[int] = mapped_column(ForeignKey("teachers.id", ondelete="CASCADE"))
+    teacher: Mapped["Teacher"] = relationship(backref="subjects")
 
 
 class Grade(Base):
     __tablename__ = "grades"
-    id = Column(Integer, primary_key=True)
-    grade = Column(Integer, nullable=False)
-    grade_date = Column("grade_date", Date, nullable=True)
-    student_id = Column("student_id", ForeignKey("students.id", ondelete="CASCADE"))
-    subjects_id = Column("subject_id", ForeignKey("subjects.id", ondelete="CASCADE"))
+    id: Mapped[int] = mapped_column(primary_key=True)
+    grade: Mapped[int] = mapped_column(nullable=True)
+    date: Mapped[datetime]
+    student_id: Mapped[int] = mapped_column(ForeignKey("students.id", ondelete="CASCADE"))
+    subject_id: Mapped[int] = mapped_column(ForeignKey("subjects.id", ondelete="CASCADE"))
     student = relationship("Student", backref="grade")
-    discipline = relationship("Subject", backref="grade")
+    subject = relationship("Subject", backref="grade")

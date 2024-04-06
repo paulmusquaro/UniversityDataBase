@@ -1,6 +1,6 @@
 from sqlalchemy.orm import sessionmaker
 from models import Group, Student, Teacher, Subject, Grade
-from sqlalchemy import create_engine, func
+from sqlalchemy import create_engine, func, desc
 from connect import SessionLocal
 
 
@@ -109,24 +109,24 @@ def select_10(student_id, teacher_id):
 # Add_1. Середній бал, який певний викладач ставить певному студентові.
 def select_add_01(teacher_id, student_id):
     session = SessionLocal()
-    result = session.query(Teacher.fullname, func.round(func.avg(Grade.grade), 2)).filter(
+    result = session.query(Teacher.name, func.round(func.avg(Grade.grade), 2)).filter(
         Teacher.id == Subject.teacher_id,
-        Grade.subjects_id == Subject.id, 
+        Grade.subject_id == Subject.id, 
         Subject.teacher_id == teacher_id, 
         Grade.student_id == student_id
-        ).group_by(Teacher.fullname).all()
+        ).group_by(Teacher.name).all()
     session.close()
     return result
 
 
 # Add_2. Оцінки студентів у певній групі з певного предмета на останньому занятті.
-def select_add_02(group_id, subjects_id):
+def select_add_02(group_id, subject_id):
     session = SessionLocal()
-    result = session.query(Student.fullname, Grade.grade).filter(
+    result = session.query(Student.name, Grade.grade).filter(
         Grade.student_id == Student.id, 
         Student.group_id == group_id,
-        Grade.subjects_id == subjects_id
-        ).order_by(desc(Grade.grade_date)).limit(1).all()
+        Grade.subject_id == subject_id
+        ).order_by(desc(Grade.date)).limit(1).all()
     session.close()
     return result
 
@@ -151,13 +151,13 @@ if __name__ == "__main__":
     print("8.------------------------")
     print(select_8(1))
     print("9.------------------------")
-    print(select_9(4))
+    print(select_9(5))
     print("10.-----------------------")
-    print(select_10(4, 1))
+    print(select_10(5, 1))
     print("                          ")
 
     print("-----Additional tasks-----")
     print("Add_1.--------------------")
-    print(select_add_01(2, 2))
+    print(select_add_01(2, 5))
     print("Add_2.--------------------")
     print(select_add_02(2, 2))

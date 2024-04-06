@@ -1,34 +1,53 @@
 import random
 from faker import Faker
-from sqlalchemy.exc import SQLAlchemyError
-from faker import Faker
-from connect import session
-from models import Student, Grade, Subject, Group, Teacher
+from datetime import datetime
+from models import Group, Teacher, Subject, Student, Grade
+from connect import SessionLocal
 
-fake = Faker("en_CA")
 
-for _ in range(5):
-    teacher = Teacher(fullname=fake.name())
-    session.add(teacher)
+fake = Faker()
+print(fake.name())
+session = SessionLocal()
 
-for _ in range(3):
-    group = Group(name=fake.word())
+
+# Додавання груп
+groups = ['Group A', 'Group B', 'Group C']
+for group_name in groups:
+    group = Group(name=group_name)
     session.add(group)
 
-for _ in range(30):
-    student = Student(fullname=fake.name(), group_id=random.choice(session.query(Group).all()).id)
-    session.add(student)
+session.commit()
 
-for _ in range(8):
-    subjects = Subject(name=fake.word(), teacher_id=random.choice(session.query(Teacher).all()).id)
-    session.add(subjects)
-
-for _ in range(30):
-    grades = Grade(
-        grade=random.randint(1, 12),
-        grade_date=fake.date_between(start_date='-5y'),
-        student_id=random.choice(session.query(Student).all()).id,
-        subjects_id=random.choice(session.query(Subject).all()).id)
-    session.add(grades)
+# Додавання викладачів
+for _ in range(random.randint(3, 5)):
+    teacher = Teacher(name=fake.name())
+    session.add(teacher)
 
 session.commit()
+
+# Додавання предметів
+subjects = ['Math', 'History', 'Biology', 'Physics', 'Chemistry', 'Literature', 'Art', 'Computer Science']
+for i, subject_name in enumerate(subjects, 1):
+    teacher_id = random.choice(session.query(Teacher.id).all())[0]
+    subject = Subject(name=subject_name, teacher_id=teacher_id)
+    session.add(subject)
+
+session.commit()
+
+# Додавання студентів і оцінок
+for _ in range(random.randint(30, 50)):
+    student_name = fake.name()
+    group_id = random.choice(session.query(Group.id).all())[0]
+    student = Student(name=student_name, group_id=group_id)
+    session.add(student)
+    session.flush()  # Студент отримає ID перед додаванням оцінок
+
+    for subject_id in session.query(Subject.id).all():
+        for _ in range(random.randint(0, 20)):  # Додавання 0-20 оцінок для кожного студента з кожного предмету
+            grade_value = random.randint(10, 100)
+            grade_date = fake.date_between("-4y", datetime.now())
+            grade = Grade(student_id=student.id, subject_id=subject_id[0], grade=grade_value, date=grade_date)
+            session.add(grade)
+
+session.commit()
+session.close()
